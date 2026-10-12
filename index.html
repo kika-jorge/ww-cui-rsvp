@@ -659,7 +659,10 @@ button, input { font:inherit; color:inherit; }
   function resize() {
     W = cv.clientWidth || window.innerWidth; H = cv.clientHeight || window.innerHeight;
     if (!G) return;
-    G.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, W < 560 ? 1.5 : 1.75));
+    // supersample: render above screen resolution so edges stay smooth, scaled down if the device struggles
+    const dpr = window.devicePixelRatio || 1;
+    const ideal = W < 560 ? Math.min(2.5, Math.max(2, dpr)) : Math.min(2.5, Math.max(2, dpr * 1.25));
+    G.renderer.setPixelRatio(ideal * (G.quality || 1));
     G.renderer.setSize(W, H, false);
     G.camera.aspect = W / Math.max(1, H); G.camera.fov = W < 560 ? 72 : 62; G.camera.updateProjectionMatrix();
   }
@@ -873,7 +876,14 @@ button, input { font:inherit; color:inherit; }
     if (S.finishDist !== null && S.mode === "drive" && S.dist >= S.finishDist) startCutscene();
   }
   let last = performance.now();
-  function frame(now) { const dt = Math.min(0.05, (now - last) / 1000); last = now; if (!S.paused) update(dt); render(S.paused ? 0 : dt); requestAnimationFrame(frame); }
+  let fpsAcc = 0, fpsN = 0;
+  function frame(now) {
+    const raw = (now - last) / 1000, dt = Math.min(0.05, raw); last = now;
+    if (!S.paused) update(dt); render(S.paused ? 0 : dt);
+    // adaptive quality: drop the supersampling a step if frames get slow, so the ride stays smooth
+    if (G && raw < 0.5) { fpsAcc += raw; fpsN++; if (fpsN >= 90) { const fps = fpsN / fpsAcc; fpsAcc = 0; fpsN = 0; const q = G.quality || 1; if (fps < 45 && q > 0.55) { G.quality = q - 0.15; resize(); } else if (fps > 58 && q < 1) { G.quality = Math.min(1, q + 0.1); resize(); } } }
+    requestAnimationFrame(frame);
+  }
 
   /* ---------- sound ---------- */
   const sfx = (() => {
