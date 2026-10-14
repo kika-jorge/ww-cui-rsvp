@@ -101,14 +101,14 @@ button, input { font:inherit; color:inherit; }
 #bonusText { margin-bottom:10px; color:var(--ink); text-shadow:0 1px 8px rgba(0,0,0,.6); }
 #bonusText, #bonusText.online, #bonusText.offline { color:#0c0a12; text-shadow:0 0 12px rgba(255,255,255,.55); font-weight:500; }
 
-@media (max-width: 559px) { #toasts { right:12px !important; } }
-#toasts { position:absolute; right:84px; top:22px; z-index:9; display:flex; flex-direction:column; gap:8px; width:min(320px, calc(100% - 24px)); pointer-events:none; }
+@media (max-width: 559px) { #toasts { left:12px !important; bottom:70px !important; } }
+#toasts { position:absolute; left:24px; right:auto; bottom:92px; top:auto; z-index:9; display:flex; flex-direction:column; gap:8px; width:min(320px, calc(100% - 24px)); pointer-events:none; }
 .toast { border-radius:var(--radius-md); padding:10px 14px 12px 50px; text-align:left; position:relative; animation:toastIn .35s ease both; box-shadow:0 10px 30px rgba(0,0,0,.4); }
 .toast::before { content:""; position:absolute; left:12px; top:12px; width:26px; height:26px; border-radius:7px; background:linear-gradient(135deg, var(--accent), #2d5fc4); box-shadow:0 0 14px rgba(87,154,255,.6); }
 .toast .label-sm { color:var(--ink-secondary); }
 .toast .caption { color:var(--ink); font-size:14px; margin-top:2px; }
 .toast.out { animation:toastOut .3s ease both; }
-@keyframes toastIn { from { opacity:0; transform:translateY(-8px) scale(.98);} to { opacity:1; transform:none; } }
+@keyframes toastIn { from { opacity:0; transform:translateX(-12px) scale(.98);} to { opacity:1; transform:none; } }
 @keyframes toastOut { to { opacity:0; transform:translateY(-8px);} }
 
 /* finish */
@@ -262,7 +262,7 @@ button, input { font:inherit; color:inherit; }
   <div id="hudBottom">
     <div class="corner left"><span class="hexicon"><svg class="hex" viewBox="0 0 44 50" aria-hidden="true"><polygon points="22,1 43,13 43,37 22,49 1,37 1,13" fill="rgba(10,8,16,.18)" stroke="currentColor" stroke-width="1"/><path d="M10 25c4-6 8-8 12-8s8 2 12 8c-4 6-8 8-12 8s-8-2-12-8z" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="22" cy="25" r="3.4" fill="currentColor"/></svg></span><span class="count" id="orbCount">0</span><span class="clock watch">watching you</span></div>
     <div class="centre">
-      <p class="hint" id="hint">Answer to keep <b>riding</b></p>
+      <p class="hint" id="hint">Steer with <b>← →</b></p>
       <div class="ticks" id="meter" role="img" aria-label="Online or offline"><span class="end on">Online</span><div class="tickrow" id="tickrow"><i class="marker" id="meterDot"></i></div><span class="end off">Offline</span></div>
     </div>
     <div class="corner right"><span class="hexicon"><svg class="hex" viewBox="0 0 44 50" aria-hidden="true"><polygon points="22,1 43,13 43,37 22,49 1,37 1,13" fill="rgba(10,8,16,.18)" stroke="currentColor" stroke-width="1"/><path d="M22 12v22 M18 30h8 M22 34v3" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></span><span class="clock" id="clock">00:00.00</span></div>
@@ -290,7 +290,7 @@ button, input { font:inherit; color:inherit; }
 </svg>
       <p class="label" style="color:#fff">Your Majesty × Studio Øutlier</p>
       <h1 class="display" id="introTitle">Weird Wins + Creativity under the influence</h1>
-      <p class="howto">The road to the RSVP runs through a city that never stops watching. Answer four yes-or-no questions to keep your horse on the road. At the castle, you get your verdict: chronically online or intentionally offline.</p>
+      <p class="howto">The road to the RSVP runs through a city that never stops watching. Steer with ← → and answer four yes-or-no questions to keep your horse on the road. At the castle, you get your verdict: chronically online or intentionally offline.</p>
       <div class="actions">
         <button class="btn" id="startBtn" type="button">Start riding</button>
         <button class="link" id="skipBtn" type="button">Skip to RSVP</button>
@@ -457,6 +457,8 @@ button, input { font:inherit; color:inherit; }
   /* ---------- 3D world (three.js) ---------- */
   const S = { mode: "intro", t: 0, dist: 0, d: 0.12, boost: 0, jolt: 0, qs: [], qi: 0, answers: [], nextPrompt: 0, nextBoard: 0, nextNotif: 0, boards: [], finishDist: null, wings: false, carX: 0, crashSide: 1, crashT: 0, count: 0, lean: 0, verdict: null, paused: false, hoofT: 0, speed: 0, carXv: 0, orbs: 0, rideT: 0, fly: null, nextDragon: 9, cut: null };
   let boardPool = DEFAULT_BOARDS.slice();
+  const KEYS = { left: false, right: false }, MOUSE = { x: 0, y: 0, t: 0 };
+  const STEERHINT = () => matchMedia("(pointer: coarse)").matches ? "Tap left or right to <b>steer</b>" : "Steer with <b>← →</b>";
   const hash = (k) => { const x = Math.sin(k * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
   const px = (d) => Math.sin(d * 0.018) * 5 + Math.sin(d * 0.0061 + 1) * 9;   // path centre x at distance d
   const halfW = () => 2.9 * (1 - 0.42 * S.d);                                // the forest closes in as d grows
@@ -621,7 +623,6 @@ button, input { font:inherit; color:inherit; }
     const neckGeo = new THREE.CylinderGeometry(0.22, 0.44, 1.6, 9, 1);
     const neck = mesh(neckGeo, horseMat, 0, 1.95, -0.95); neck.rotation.x = -0.75; horse.add(neck);
     const head = mesh(new THREE.CylinderGeometry(0.18, 0.24, 0.8, 6), horseMat, 0, 2.42, -1.55); head.rotation.x = 0.35; horse.add(head);
-    const mane = mesh(new THREE.BoxGeometry(0.1, 0.14, 1.5), maneMat, 0, 2.16, -0.95); mane.rotation.x = -0.75; horse.add(mane);
     const ears = [-0.11, 0.11].map((x) => { const e = mesh(new THREE.ConeGeometry(0.07, 0.3, 4), horseMat, x, 2.85, -1.42); e.rotation.x = -0.15; e.rotation.z = -x * 0.8; horse.add(e); return e; });
     const bodyGeo = new THREE.SphereGeometry(1, 14, 10);
     horse.add(mesh(bodyGeo, horseMat, 0, 1.4, 0.05, 0.52, 0.56, 1.2));
@@ -761,7 +762,7 @@ button, input { font:inherit; color:inherit; }
     const gp = S.gp;
     const bob = reduced ? 0 : Math.abs(Math.sin(gp)) * 0.1 * amp;
     g.horse.position.set(hx, bob * 0.6, hz);
-    g.horse.rotation.y = heading + (S.mode === "crash" ? S.crashSide * Math.min(0.4, S.crashT) : 0);
+    g.horse.rotation.y = heading + (S.mode === "crash" ? S.crashSide * Math.min(0.4, S.crashT) : -(S.vx || 0) * 0.05);
     g.neck.rotation.x = -0.75 + (reduced ? 0 : Math.sin(gp) * 0.05 * amp);
     g.head.rotation.x = 0.35 + (reduced ? 0 : Math.sin(gp + 0.6) * 0.06 * amp);
     g.legs.forEach((l) => { l.pivot.rotation.x = reduced ? 0 : Math.sin(gp + l.ph) * 0.6 * amp; });
@@ -797,6 +798,11 @@ button, input { font:inherit; color:inherit; }
     const WHITE = render.W || (render.W = new THREE.Color(1, 1, 1)), DIM = render.D || (render.D = new THREE.Color(0.07, 0.07, 0.07));
     const up = render.UP || (render.UP = new THREE.Vector3(0, 1, 0));
     const Hd = render.HD || (render.HD = new THREE.Vector3()); Hd.set(hx, 2.5, hz - 0.8);
+    if (MOUSE.t && performance.now() - MOUSE.t < 6000 && S.mode !== "cutscene") {
+      const mv = render.MV || (render.MV = new THREE.Vector3());
+      mv.set(MOUSE.x, MOUSE.y, 0.5).unproject(g.camera).sub(g.camera.position).normalize();
+      Hd.copy(g.camera.position).addScaledVector(mv, 14);
+    }
     const f = render.F || (render.F = new THREE.Vector3()), r = render.Rv || (render.Rv = new THREE.Vector3()), front = render.FR || (render.FR = new THREE.Vector3()), dir = render.DI || (render.DI = new THREE.Vector3());
     let watching = 0;
     g.tvs.forEach((t, i) => {
@@ -952,7 +958,12 @@ button, input { font:inherit; color:inherit; }
     S.boards = S.boards.filter((b) => b.wz - S.dist > -6);
     const room = Math.max(0, halfW() - 0.75);
     const prev = S.carX;
-    if (S.mode !== "crash") S.carX = 0;
+    const steer = (KEYS.right ? 1 : 0) - (KEYS.left ? 1 : 0);
+    if (["countdown", "drive", "prompt"].includes(S.mode)) {
+      S.vx = (S.vx || 0) + steer * 26 * dt; S.vx *= Math.exp(-dt * 4.5);
+      S.carX += S.vx * dt;
+      if (Math.abs(S.carX) > room) { S.carX = Math.sign(S.carX) * room; S.vx = 0; }
+    } else if (S.mode !== "crash") { S.carX *= Math.exp(-dt * 3); S.vx = 0; }
     S.carXv = (S.carX - prev) / Math.max(dt, 0.001);
     if (S.fly) { S.fly.t += dt; if (S.fly.t > S.fly.dur) S.fly = null; }
     if (S.cut) { S.cut.t += dt; if (S.cut.t > (S.cut.type === "on" ? 4.2 : 4.4) && S.mode === "cutscene") { finishRace(); } }
@@ -1046,14 +1057,12 @@ button, input { font:inherit; color:inherit; }
   function notify() {
     if (reduced && Math.random() < 0.5) return;
     const box = $("toasts"); if (box.children.length >= (W < 560 ? 2 : 4)) box.firstElementChild.remove();
-    const pr = $("prompt"), stage = $("stage").getBoundingClientRect();
-    const r = pr.classList.contains("on") ? pr.getBoundingClientRect() : null;
-    box.style.top = (r && (W < 560 || r.right > stage.right - 420) ? Math.round(r.bottom - stage.top + 12) : (W < 560 ? 62 : 22)) + "px";
     const el = document.createElement("div"); el.className = "toast glass";
     const l = document.createElement("div"); l.className = "label-sm"; l.textContent = "Notification · now";
     const c = document.createElement("div"); c.className = "caption"; c.textContent = pick(NOTIFS);
     el.append(l, c); box.append(el); sfx.blip();
     S.jolt = (Math.random() < 0.5 ? -1 : 1) * (reduced ? 1 : 3);
+    S.vx = (S.vx || 0) + S.jolt * 0.35;
     setTimeout(() => { el.classList.add("out"); setTimeout(() => el.remove(), 300); }, 3800);
   }
   function setMeter() {
@@ -1065,12 +1074,12 @@ button, input { font:inherit; color:inherit; }
     $("meterDot").style.boxShadow = p < 0 ? "0 0 14px rgba(159,193,255,1)" : p > 0 ? "0 0 14px rgba(255,224,138,1)" : "";
   }
   function resetRide() {
-    Object.assign(S, { fly: null, nextDragon: 9, cut: null, orbs: 0, rideT: 0, paused: false, t: 0, count: 4, d: 0.12, boost: 0, qs: buildQuestions(), qi: 0, lean: 0, verdict: null, answers: [], nextPrompt: 1.5, nextBoard: 1.5, nextNotif: 1.5, boards: [], finishDist: null, wings: false, carX: 0, crashT: 0 });
+    Object.assign(S, { fly: null, nextDragon: 9, cut: null, orbs: 0, rideT: 0, paused: false, t: 0, count: 4, d: 0.12, boost: 0, qs: buildQuestions(), qi: 0, lean: 0, verdict: null, answers: [], nextPrompt: 1.5, nextBoard: 1.5, nextNotif: 1.5, boards: [], finishDist: null, wings: false, carX: 0, vx: 0, crashT: 0 });
   }
   function startGame() {
     sfx.unlock(); resetRide(); S.mode = "countdown"; $("blackout").classList.remove("on");
     $("rsvp").hidden = false; $("fallback").hidden = true;
-    $("toasts").innerHTML = ""; show(null); setMeter(); setOrbs(); setClock(); $("hint").innerHTML = "Answer to keep <b>riding</b>";
+    $("toasts").innerHTML = ""; show(null); setMeter(); setOrbs(); setClock(); $("hint").innerHTML = STEERHINT();
   }
   function showPrompt() {
     S.mode = "prompt";
@@ -1094,7 +1103,7 @@ button, input { font:inherit; color:inherit; }
     S.qi++; S.mode = "drive"; S.nextPrompt = S.t + (S.qi >= 4 ? 2.5 : 4 + Math.random() * 2);
     $("prompt").classList.remove("on");
     if (document.activeElement) document.activeElement.blur();
-    setMeter(); burst(dir); $("hint").innerHTML = "Answer to keep <b>riding</b>";
+    setMeter(); burst(dir); $("hint").innerHTML = STEERHINT();
     dir > 0 ? sfx.up() : sfx.mid();
     flash(reactionFor(dir), false, dir > 0 ? "Going offline" : "Going online", dir > 0 ? "offline" : "online");
   }
@@ -1163,6 +1172,19 @@ button, input { font:inherit; color:inherit; }
   $("pauseSkip").onclick = skipToRsvp;
   $("pauseQuit").onclick = () => { resetRide(); S.mode = "intro"; show("intro"); };
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") { S.paused ? resumeGame() : stopGame(); } });
+  // steering: arrow keys (or A/D), and touch-and-hold on the left or right of the screen
+  const setKey = (e, v) => {
+    const k = e.key;
+    if (k === "ArrowLeft" || k === "a" || k === "A") { KEYS.left = v; if (playing()) e.preventDefault(); }
+    if (k === "ArrowRight" || k === "d" || k === "D") { KEYS.right = v; if (playing()) e.preventDefault(); }
+  };
+  document.addEventListener("keydown", (e) => setKey(e, true));
+  document.addEventListener("keyup", (e) => setKey(e, false));
+  window.addEventListener("blur", () => { KEYS.left = KEYS.right = false; });
+  cv.addEventListener("pointerdown", (e) => { if (!playing()) return; if (e.clientX < W / 2) KEYS.left = true; else KEYS.right = true; });
+  ["pointerup", "pointercancel", "pointerleave"].forEach((ev) => cv.addEventListener(ev, () => { KEYS.left = KEYS.right = false; }));
+  // the eyes follow the mouse
+  window.addEventListener("mousemove", (e) => { const rc = cv.getBoundingClientRect(); MOUSE.x = ((e.clientX - rc.left) / rc.width) * 2 - 1; MOUSE.y = -((e.clientY - rc.top) / rc.height) * 2 + 1; MOUSE.t = performance.now(); });
   $("startBtn").onclick = startGame;
   $("retryBtn").onclick = startGame;
   $("againBtn").onclick = startGame;
