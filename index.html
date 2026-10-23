@@ -35,8 +35,8 @@ body { height:100%; margin:0; background:#05080d; color:var(--ink-body); font:40
 button, input { font:inherit; color:inherit; }
 :focus-visible { outline:none; box-shadow:var(--focus-ring); }
 
-#stage { position:relative; width:100%; height:100%; overflow:hidden; background:radial-gradient(ellipse at 50% 30%, #1a2a44 0%, #070b12 70%); }
-#scene { position:absolute; inset:0; width:100%; height:100%; display:block; }
+#stage { position:relative; width:100%; height:100%; height:100dvh; overflow:hidden; touch-action:manipulation; -webkit-tap-highlight-color:transparent; -webkit-user-select:none; user-select:none; background:radial-gradient(ellipse at 50% 30%, #1a2a44 0%, #070b12 70%); }
+#scene { position:absolute; inset:0; width:100%; height:100%; display:block; touch-action:none; }
 .vignette { position:absolute; inset:0; pointer-events:none; z-index:2; background:radial-gradient(ellipse at 50% 55%, transparent 50%, rgba(0,0,0,.55) 100%); }
 
 .label { font:400 13px/1.3 var(--font-mono); text-transform:uppercase; letter-spacing:.06em; margin:0; color:var(--ink-muted); }
@@ -163,6 +163,21 @@ button, input { font:inherit; color:inherit; }
 }
 
 /* Cavalier look */
+.screen, .screen input { -webkit-user-select:text; user-select:text; }
+@media (max-height: 520px) {
+  .screen-inner { padding:var(--space-6) var(--space-6); gap:var(--space-3); }
+  #intro .screen-inner { padding-bottom:var(--space-6); }
+  #intro .mono-mark, #done .mono-mark { display:none; }
+  #intro .display { font-size:clamp(30px, 9vh, 52px); }
+  #finish .display, #crash .display, #done .display, #paused .display { font-size:clamp(30px, 10vh, 56px); }
+  #finish .display.long { font-size:clamp(24px, 7vh, 40px); }
+  .howto, .intro-text { font-size:15px; }
+  #prompt { top:56px; padding:14px 18px; }
+  #qText { font-size:18px; margin:6px 0 12px; }
+  .yn .btn { padding:12px; }
+  .wink, #hudBottom .hint { display:none; }
+  #hud { padding:10px 14px; }
+}
 .cinema #hud, .cinema #hudBottom { opacity:0; transition:opacity .6s ease; }
 #blackout { position:absolute; inset:0; background:#05030a; z-index:10; opacity:0; pointer-events:none; transition:opacity .25s ease; }
 #blackout.on { opacity:1; }
@@ -353,6 +368,7 @@ button, input { font:inherit; color:inherit; }
         <label><span class="label-sm">Name</span><input class="field" name="name" autocomplete="name" required maxlength="80"></label>
         <label><span class="label-sm">Email</span><input class="field" name="email" type="email" autocomplete="email" required maxlength="120"></label>
         <label><span class="label-sm">Company</span><input class="field" name="company" autocomplete="organization" maxlength="80"></label>
+        <input name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
         <fieldset style="border:0;padding:0;margin:0;display:grid;gap:6px">
           <legend class="label-sm" style="padding:0;margin-bottom:6px;color:var(--ink-muted)">Bringing a +1?</legend>
           <div class="seg">
@@ -527,6 +543,8 @@ button, input { font:inherit; color:inherit; }
 
     const hemi = new THREE.HemisphereLight(0xd6d8e0, 0x0a0a0c, 0.45); scene.add(hemi);
     const back = new THREE.DirectionalLight(0xe8eaf0, 0.45); scene.add(back); scene.add(back.target);
+    const horseKey = new THREE.SpotLight(0xf2f0ea, 1.1, 14, 0.7, 0.6, 1.5); scene.add(horseKey); scene.add(horseKey.target);
+    const horseRim = new THREE.PointLight(0xcfd8ff, 0.9, 7, 2); scene.add(horseRim);
 
     // ground + path
     const ground = new THREE.Mesh(new THREE.PlaneGeometry(600, 600), new THREE.MeshStandardMaterial({ color: 0x0f0f11, roughness: 0.55, metalness: 0.25 }));
@@ -615,14 +633,14 @@ button, input { font:inherit; color:inherit; }
     // (motes removed)
 
     // the horse, seen from the saddle
-    const horseMat = new THREE.MeshStandardMaterial({ color: 0x1d1924, roughness: 0.6, flatShading: true });
+    const horseMat = new THREE.MeshStandardMaterial({ color: 0x1c1b20, roughness: 0.45, metalness: 0.12 });
     const maneMat = new THREE.MeshStandardMaterial({ color: 0x120f17, roughness: 0.9, flatShading: true });
     const goldMat = new THREE.MeshStandardMaterial({ color: 0xffd133, metalness: 0.8, roughness: 0.3, emissive: 0x3a2a00, flatShading: true });
     const mesh = (geo, mat, x, y, z, sx, sy, sz) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); if (sx) m.scale.set(sx, sy, sz); return m; };
     const horse = new THREE.Group();
-    const neckGeo = new THREE.CylinderGeometry(0.22, 0.44, 1.6, 9, 1);
+    const neckGeo = new THREE.CylinderGeometry(0.22, 0.44, 1.6, 16, 1);
     const neck = mesh(neckGeo, horseMat, 0, 1.95, -0.95); neck.rotation.x = -0.75; horse.add(neck);
-    const head = mesh(new THREE.CylinderGeometry(0.18, 0.24, 0.8, 6), horseMat, 0, 2.42, -1.55); head.rotation.x = 0.35; horse.add(head);
+    const head = mesh(new THREE.CylinderGeometry(0.18, 0.24, 0.8, 14), horseMat, 0, 2.42, -1.55); head.rotation.x = 0.35; horse.add(head);
     const ears = [-0.11, 0.11].map((x) => { const e = mesh(new THREE.ConeGeometry(0.07, 0.3, 4), horseMat, x, 2.85, -1.42); e.rotation.x = -0.15; e.rotation.z = -x * 0.8; horse.add(e); return e; });
     const bodyGeo = new THREE.SphereGeometry(1, 14, 10);
     horse.add(mesh(bodyGeo, horseMat, 0, 1.4, 0.05, 0.52, 0.56, 1.2));
@@ -713,7 +731,7 @@ button, input { font:inherit; color:inherit; }
     eyeGlow.scale.set(18, 18, 1); eyeGlow.position.z = -2; rig.add(eyeGlow);
     const dLight = new THREE.PointLight(0xeef2ff, 2.4, 34, 2); dLight.position.set(0, 0, 5); rig.add(dLight);
 
-    return { legs, tail, dragon, rig, bigPupil, lidTop, lidBot, eyeGlow, dLight, renderer, scene, camera, hemi, back, ground, path, pathGeo, ppos, SEG, PATHLEN, spires, slots, TREELEN, rocks, rslots, screens, halos, screenLight, NS, tvBodies, irises, tvCables, tvs, orbs, orbHalo, orbList, flies, fly, fpos, horse, ears, neck, head, wings, lanternG, lantern, lanternGlow, shardP, parts, flashLight, castle, bannerGroups, makeBanner, fogCol, camPos: new THREE.Vector3(0, 3, 4), camLook: new THREE.Vector3(0, 2, -8), tmp: new THREE.Object3D() };
+    return { horseKey, horseRim, legs, tail, dragon, rig, bigPupil, lidTop, lidBot, eyeGlow, dLight, renderer, scene, camera, hemi, back, ground, path, pathGeo, ppos, SEG, PATHLEN, spires, slots, TREELEN, rocks, rslots, screens, halos, screenLight, NS, tvBodies, irises, tvCables, tvs, orbs, orbHalo, orbList, flies, fly, fpos, horse, ears, neck, head, wings, lanternG, lantern, lanternGlow, shardP, parts, flashLight, castle, bannerGroups, makeBanner, fogCol, camPos: new THREE.Vector3(0, 3, 4), camLook: new THREE.Vector3(0, 2, -8), tmp: new THREE.Object3D() };
   }
 
   function burst(dir, at, power) {
@@ -795,7 +813,7 @@ button, input { font:inherit; color:inherit; }
     g.spires.instanceMatrix.needsUpdate = true;
     // screens with eyes
     let nearest = null;
-    const WHITE = render.W || (render.W = new THREE.Color(1, 1, 1)), DIM = render.D || (render.D = new THREE.Color(0.07, 0.07, 0.07));
+    const WHITE = render.W || (render.W = new THREE.Color(1, 1, 1)), DIM = render.D || (render.D = new THREE.Color(0.07, 0.07, 0.07)), BL = render.BLc || (render.BLc = new THREE.Color());
     const up = render.UP || (render.UP = new THREE.Vector3(0, 1, 0));
     const Hd = render.HD || (render.HD = new THREE.Vector3()); Hd.set(hx, 2.5, hz - 0.8);
     if (MOUSE.t && performance.now() - MOUSE.t < 6000 && S.mode !== "cutscene") {
@@ -820,12 +838,14 @@ button, input { font:inherit; color:inherit; }
       f.set(Math.sin(th), 0, Math.cos(th)); r.set(Math.cos(th), 0, -Math.sin(th));
       tm.position.set(x, y, z); tm.rotation.set(t.kind === "hang" ? 0.12 : 0, th, 0); tm.scale.set(sc, sc, sc); tm.updateMatrix(); g.tvBodies.setMatrixAt(i, tm.matrix);
       front.set(x, y, z).addScaledVector(f, 0.56 * sc);
-      tm.position.copy(front); tm.scale.setScalar(sc); tm.updateMatrix(); g.screens.setMatrixAt(i, tm.matrix); g.screens.setColorAt(i, on ? WHITE : DIM);
+      const per = 2.6 + hash(t.k + 77) * 5.5, ph = (S.t + hash(t.k + 33) * per) % per, blinkK = ph < 0.16 ? Math.sin((ph / 0.16) * Math.PI) : 0;
+      tm.position.copy(front); tm.scale.setScalar(sc); tm.updateMatrix(); g.screens.setMatrixAt(i, tm.matrix);
+      g.screens.setColorAt(i, on ? (blinkK > 0 ? BL.setScalar(1 - blinkK * 0.8) : WHITE) : DIM);
       tm.position.copy(front).addScaledVector(f, -0.1); tm.scale.setScalar(on ? sc : 0.0001); tm.updateMatrix(); g.halos.setMatrixAt(i, tm.matrix);
       dir.copy(Hd).sub(front); const len = dir.length() || 1;
       const lx = Math.max(-1, Math.min(1, dir.dot(r) / len * 2.2)), ly = Math.max(-1, Math.min(1, dir.y / len * 2.2));
       tm.position.copy(front).addScaledVector(f, 0.01).addScaledVector(r, lx * 0.38 * sc).addScaledVector(up, ly * 0.2 * sc);
-      tm.scale.setScalar(on ? sc : 0.0001); tm.updateMatrix(); g.irises.setMatrixAt(i, tm.matrix);
+      tm.scale.set(on ? sc : 0.0001, on ? sc * Math.max(0.05, 1 - blinkK) : 0.0001, 1); tm.updateMatrix(); g.irises.setMatrixAt(i, tm.matrix);
       if (t.kind === "hang" && show) { tm.position.set(x, y + 0.65 + 6, z); tm.rotation.set(0, 0, 0); tm.scale.set(1, 12, 1); } else tm.scale.setScalar(0.0001);
       tm.updateMatrix(); g.tvCables.setMatrixAt(i, tm.matrix);
       if (on) { const ahead = t.d - d0; if (ahead > 2 && ahead < 20 && (!nearest || ahead < nearest.a)) nearest = { a: ahead, x: front.x, y: front.y, z: front.z }; }
@@ -872,6 +892,8 @@ button, input { font:inherit; color:inherit; }
     } else g.castle.visible = false;
 
     g.back.position.set(hx + 6, 14, hz - 40); g.back.target.position.set(hx, 0, hz);
+    g.horseKey.position.set(hx - 1.6, 5.2, hz + 1.6); g.horseKey.target.position.set(hx, 1.8, hz - 1.0);
+    g.horseRim.position.set(hx + 0.6, 3.4, hz - 3.4);
 
     // Big Brother fly-by and finale
     const dr = g.dragon; let dPos = null, open = 1, pupil = 0.8;
@@ -879,13 +901,13 @@ button, input { font:inherit; color:inherit; }
     const blink = (Math.sin(S.t * 0.9) > 0.985) ? 0.1 : 1;
     if (S.fly) {
       const u = S.fly.t / S.fly.dur, sd = S.fly.side;
-      dPos = at(42 - 10 * u, sd * (-40 + 80 * u), 14 + Math.sin(u * Math.PI) * 3);
+      dPos = at(62 - 34 * u, sd * Math.sin(u * Math.PI * 2) * 1.2, 12 + Math.sin(u * Math.PI) * 3 + Math.max(0, u - 0.7) * 30);
       open = blink * Math.min(1, Math.sin(u * Math.PI) * 3); pupil = 0.7;
     }
     if (S.cut) {
       const c = S.cut, t = c.t, ease = (x) => x < 0 ? 0 : x > 1 ? 1 : x * x * (3 - 2 * x);
       const cam = g.camPos;
-      dPos = new THREE.Vector3().lerpVectors(at(48, 22, 20), at(15, 0, 6.5), ease(t / 1.6));
+      dPos = new THREE.Vector3().lerpVectors(at(55, 0, 22), at(15, 0, 6.5), ease(t / 1.6));
       open = Math.min(1, t * 1.5); pupil = 1 - ease(t / 1.6) * 0.45;
       if (c.type === "off") {
         if (t >= 1.6 && !c.fired) { c.fired = true; burst(1, { x: px(d0), y: 2.6, z: -(d0 + 3) }, 1.3); sfx.up(); }
@@ -895,7 +917,7 @@ button, input { font:inherit; color:inherit; }
         if (t > 1.6) { const k2 = ease((t - 1.6) / 0.9); dPos.lerpVectors(at(15, 0, 6.5), new THREE.Vector3(cam.x, cam.y + 0.2, cam.z - 4.4), k2); pupil = 0.55 + k2 * 6; }
         if (t >= 2.45 && !c.hit) { c.hit = true; $("blackout").classList.add("on"); sfx.chomp(); setTimeout(() => flash("Big Brother swallowed you.", false, "Online wins", "online"), 350); }
       } else {
-        if (t > 1.6) { const k2 = ease((t - 1.6) / 2); dPos = new THREE.Vector3().lerpVectors(at(15, 0, 6.5), at(60, -20, 32), k2); open = 1 - k2 * 0.55; }
+        if (t > 1.6) { const k2 = ease((t - 1.6) / 2); dPos = new THREE.Vector3().lerpVectors(at(15, 0, 6.5), at(24, 0, 60), k2); open = 1 - k2 * 0.55; }
         if (t >= 1.8 && !c.hit) { c.hit = true; sfx.roar(); flash("It's still watching.", false, "Stalemate", ""); }
       }
     }
@@ -1202,6 +1224,8 @@ button, input { font:inherit; color:inherit; }
     const id = await user.id().catch(() => null);
     return id ? { db, user, id } : null;
   }
+  // RSVP storage: the Google Sheet web app URL goes here (leave empty to use Claude's storage only)
+  const RSVP_ENDPOINT = "https://script.google.com/macros/s/AKfycbw526bneDs-eOZFneWP2ik2IyF88FqF89UQti2MHtdX4apBgdCAKv2Lc4mc7H10aMEM/exec";
   $("rsvp").addEventListener("submit", async (e) => {
     e.preventDefault();
     const f = e.target, err = $("formError");
@@ -1213,10 +1237,17 @@ button, input { font:inherit; color:inherit; }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { err.textContent = "Add a valid email, for example name@company.com."; err.hidden = false; el.namedItem("email").focus(); return; }
     const btn = $("saveBtn"); btn.disabled = true; btn.textContent = "Saving…";
     try {
-      const c = await ids();
-      if (!c) { $("rsvp").hidden = true; $("fallback").hidden = false; return; }
-      await c.db.collection("rsvps").doc(c.id).set({ name, email, company, plusOne, played: S.answers.length > 0, verdict: S.verdict || null, answers: S.answers.map((a) => ({ tag: a.tag, a: a.a })), at: new Date().toISOString() });
-      show("done");
+      if (el.namedItem("website").value) { show("done"); return; }
+      const payload = { name, email, company, plusOne, played: S.answers.length > 0, verdict: S.verdict || "", online: S.answers.filter((a) => a.dir < 0).length, offline: S.answers.filter((a) => a.dir > 0).length, answers: S.answers.map((a) => a.q + " → " + a.a).join(" | ") };
+      let saved = false;
+      if (RSVP_ENDPOINT) {
+        try { await fetch(RSVP_ENDPOINT, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) }); saved = true; } catch (e3) { saved = false; }
+      }
+      if (!saved) {
+        const c = await ids();
+        if (c) { await c.db.collection("rsvps").doc(c.id).set({ name, email, company, plusOne, played: S.answers.length > 0, verdict: S.verdict || null, answers: S.answers.map((a) => ({ tag: a.tag, a: a.a })), at: new Date().toISOString() }); saved = true; }
+      }
+      if (saved) show("done"); else { $("rsvp").hidden = true; $("fallback").hidden = false; }
     } catch (e2) {
       $("rsvp").hidden = true; $("fallback").hidden = false;
     } finally { btn.disabled = false; btn.textContent = "Save my spot"; }
@@ -1226,6 +1257,7 @@ button, input { font:inherit; color:inherit; }
   W = cv.clientWidth || window.innerWidth; H = cv.clientHeight || window.innerHeight;
   G = buildWorld();
   resize();
+  if (matchMedia("(pointer: coarse)").matches) { const h = document.querySelector(".howto"); if (h) h.textContent = h.textContent.replace("Steer with ← → and answer", "Tap left or right to steer, and answer"); }
   requestAnimationFrame(frame);
 })();
 </script>
