@@ -63,7 +63,7 @@ button, input { font:inherit; color:inherit; }
 .mono-mark { width:40px; height:auto; color:var(--ink); }
 .mono-mark path { fill:currentColor; }
 #intro .display { font-size:clamp(44px, 8.5vw, 92px); line-height:1.02; max-width:900px; }
-#intro .screen-inner { justify-content:flex-end; padding-bottom:var(--space-16); }
+#intro .screen-inner { justify-content:center; padding-bottom:var(--space-12); }
 #intro { background:linear-gradient(180deg, rgba(5,8,13,0) 0%, rgba(5,8,13,.35) 45%, rgba(5,8,13,.88) 100%); }
 .actions { display:flex; flex-wrap:wrap; gap:var(--space-3); justify-content:center; align-items:center; }
 .howto { max-width:480px; color:var(--ink-body); margin:0; }
@@ -150,7 +150,7 @@ button, input { font:inherit; color:inherit; }
 
 @media (max-width: 560px) {
   .screen-inner { padding:var(--space-8) var(--space-4); gap:var(--space-4); }
-  #intro .screen-inner { padding-bottom:var(--space-12); }
+  #intro .screen-inner { padding-bottom:var(--space-8); }
   .intro-text { font-size:18px; }
   #qText { font-size:20px; }
   #prompt { top:62px; padding:var(--space-4); }
@@ -166,7 +166,7 @@ button, input { font:inherit; color:inherit; }
 .screen, .screen input { -webkit-user-select:text; user-select:text; }
 @media (max-height: 520px) {
   .screen-inner { padding:var(--space-6) var(--space-6); gap:var(--space-3); }
-  #intro .screen-inner { padding-bottom:var(--space-6); }
+  #intro .screen-inner { padding-bottom:var(--space-6); justify-content:center; }
   #intro .mono-mark, #done .mono-mark { display:none; }
   #intro .display { font-size:clamp(30px, 9vh, 52px); }
   #finish .display, #crash .display, #done .display, #paused .display { font-size:clamp(30px, 10vh, 56px); }
@@ -228,7 +228,7 @@ button, input { font:inherit; color:inherit; }
 .wink { letter-spacing:.06em; }
 .toast { background:rgba(18,13,28,.55); border-color:rgba(255,255,255,.16); }
 .screen { background:linear-gradient(180deg, rgba(40,30,62,.25) 0%, rgba(22,16,34,.78) 55%, rgba(14,10,22,.94) 100%); }
-#intro { background:linear-gradient(180deg, rgba(40,30,62,0) 0%, rgba(30,22,46,.3) 45%, rgba(16,12,26,.9) 100%); }
+#intro { background:radial-gradient(ellipse 70% 60% at 50% 52%, rgba(14,10,22,.72) 0%, rgba(14,10,22,.4) 55%, rgba(14,10,22,.18) 100%); }
 .label { letter-spacing:.24em; }
 .display { text-shadow:0 2px 30px rgba(30,20,60,.45); }
 .btn { border-radius:2px; letter-spacing:.02em; }
